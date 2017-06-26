@@ -1,49 +1,48 @@
 import numpy as np
+import random
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 class Perceptron(object):
-    def __init__(self, alpha=0.03, w=[0.0,0.0,0.0]):
-        self.alpha = alpha
-        # 权值
-        self.w = np.array(w, dtype=float)
-        self.w.shape = (3,1)
+    def __init__(self):
+        self.weight = None
 
-    def has_misclassified(self, X, y):
-        # 是否存在误分类点
-        # 若不存在, 返回 False, None, None
-        # 若存在, 返回 True, 第一个误分类点, 第一个误分类点的类别
-        y_pre = y*(np.dot(X, self.w))
-        for i in range(X.shape[0]):
-            if y_pre[i] <= 0:
-                x_error = X[i]
-                x_error.shape = (3,1)
-                return True, x_error, y[i]
-        return False, None, None
+    def fit(self, X, y, alpha=0.001, max_iter=1000):
+        X, y = np.array(X), np.array(y)
+        sample_nums = X.shape[0]
+        X = np.column_stack((np.ones(sample_nums), X))
+        feature_nums = X.shape[1]
+        self.weight = np.zeros((feature_nums, 1))
+        idx = np.array([i for i in range(sample_nums)])
+        mis_idx = idx[(np.dot(X, self.weight).reshape(sample_nums,) * y) <= 0]
+        iteration = 0
+        while(len(mis_idx) > 0 and iteration < max_iter):
+            rand_mis_idx = random.choice(mis_idx)
+            self.weight += (alpha * y[rand_mis_idx] * X[rand_mis_idx]).reshape(feature_nums, 1)
+            mis_idx = idx[(np.dot(X, self.weight).reshape(sample_nums,) * y) <= 0]
+            iteration += 1
+        return self
 
-    def update_w(self, x, y):
-        # 根据传入的误分类点更新权值
-        self.w += self.alpha * y * x
+    def predict(self, X):
+        X = np.array(X)
+        if X.ndim == 1:
+            X = np.concatenate([np.ones(1), X])
+            return 1 if X.dot(self.weight)[0] >= 0 else 0
+        sample_nums = X.shape[0]
+        X = np.column_stack((np.ones(sample_nums), X))
+        return np.apply_along_axis(lambda x: 1 if x >= 0 else -1, 1, np.dot(X, self.weight))
 
-    def fit(self, X, y):
-        # 拟合样本, 注意, 样本必须是线性可分, 否则死循环
-        y.shape = (X.shape[0], 1)
-        while True:
-            has_mis, x_mis, y_mis = self.has_misclassified(X, y)
-            if not has_mis:
-                break
-            else:
-                self.update_w(x_mis, y_mis)
-
-    def predict(self, x):
-        # 对一个样本进行预测, 返回1或0
-        bias_unit = np.ones((1,1))
-        x = np.concatenate((bias_unit, x), axis=0)
-        return 1 if np.dot(self.w.T, x) > 0 else 0
+    def score(self, X, y):
+        y_predict = self.predict(X)
+        return accuracy_score(y_predict, y)
 
 if __name__ == '__main__':
-    model = Perceptron(alpha=1)
-    X = np.array([[1,3,3], [1,4,3], [1,1,1]])
-    y = np.array([1,1,-1])
-    model.fit(X, y)
-
-    x = np.array([10,10])
-    x.shape = (2,1)
-    print(model.predict(x))
+    iris = datasets.load_iris()
+    X = iris.data[:, :2]
+    y = iris.target
+    X = X[y < 2]
+    y = y[y < 2]
+    y[y == 0] = -1
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    clf = Perceptron1().fit(X, y)
+    print(clf.score(X_test, y_test))
