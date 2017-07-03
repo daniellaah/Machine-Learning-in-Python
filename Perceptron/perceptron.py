@@ -1,7 +1,5 @@
-import numpy as np
 import random
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+import numpy as np
 from sklearn.metrics import accuracy_score
 class Perceptron(object):
     def __init__(self):
@@ -35,14 +33,3 @@ class Perceptron(object):
     def score(self, X, y):
         y_predict = self.predict(X)
         return accuracy_score(y_predict, y)
-
-if __name__ == '__main__':
-    iris = datasets.load_iris()
-    X = iris.data[:, :2]
-    y = iris.target
-    X = X[y < 2]
-    y = y[y < 2]
-    y[y == 0] = -1
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    clf = Perceptron1().fit(X, y)
-    print(clf.score(X_test, y_test))
