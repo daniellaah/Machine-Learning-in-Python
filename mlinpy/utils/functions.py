@@ -18,3 +18,12 @@ def softmax(theta, x):
 def gaussian(mu, sigma, x):
     exponent = np.exp(- ((x - mu)**2 / (2 * sigma**2)))
     return np.log(exponent / (np.sqrt(2 * np.pi) * sigma))
+
+def relu(Z):
+    A = np.maximum(0,Z)
+    return A
+
+def leaky_relu(Z):
+    A = np.maximum(0,Z)
+    A[Z < 0] = 0.01 * Z
+    return A
