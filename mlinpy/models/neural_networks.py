@@ -1,7 +1,7 @@
 import numpy as np
 from mlinpy.utils.functions import sigmoid, relu, leaky_relu
 
-class LRAsANeuralNetwork():
+class LRAsNeuralNetwork():
     def __init__(self):
         pass
 
